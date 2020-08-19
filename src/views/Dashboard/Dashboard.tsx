@@ -88,6 +88,7 @@ interface State {
   dataBrazil: ResponseBrazil;  
   selectedState: string;
   dataBrazilStates: ResponseListByStates[];
+  currentBrazilState: ResponseListByStates;
   dataDateList: ResponseListByStates[][];
   creatingMessage: boolean;
   messageSuccess: boolean;
@@ -113,7 +114,17 @@ class Dashboard extends React.Component<Props, State> {
         deaths: 0,
         recovered: 0,
         updated_at: "01/01/2020",
-      },      
+      },   
+      currentBrazilState:{
+        uid: 0,
+        uf: 'MG',
+        state: 'Carregando...',
+        cases: 0,
+        deaths: 0,
+        suspects: 0,
+        refuses: 0,
+        datetime: "00/00/2020"
+      },
       selectedState: "#",
       dataWorld: [],      
       dataBrazilStates: [],
@@ -129,11 +140,18 @@ class Dashboard extends React.Component<Props, State> {
     const API_URL = "https://covid19-brazil-api.now.sh/api/report/v1/brazil/"
     const API_URL2 ="https://covid19-brazil-api.now.sh/api/report/v1" 
     const API_URL_WORLD ="https://covid19-brazil-api.now.sh/api/report/v1/countries"     
+    const API_URL_STATE ="https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/mg"         
 
     const responseBrazil = (await fetch(API_URL)
       .then((resp) => resp.json())) as {
       data: ResponseBrazil;
     };
+
+    
+
+    const responsecurrentState = (await fetch(API_URL_STATE)
+      .then((resp) => resp.json())) ;
+    console.log(responsecurrentState)
 
     const responseWorld = (await fetch(API_URL_WORLD)
       .then((resp) => resp.json())) as {
@@ -173,10 +191,12 @@ class Dashboard extends React.Component<Props, State> {
       dataDateList: listDate,      
 
       dataWorld: responseWorld.data,
-      dataBrazilStates: responseList.data,    
+      dataBrazilStates: responseList.data,  
+      currentBrazilState: responsecurrentState
+      //currentBrazilState: responsecurrentState.data  
     });
 
-
+    console.log({responsecurrentState})
 
   };
 
@@ -184,11 +204,19 @@ class Dashboard extends React.Component<Props, State> {
 
 
   handleChangeState = async (value: string) => {
+    const response = (await fetch(`https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/${value}`)
+      .then((resp) => resp.json()))
+    console.log('===========')
+    console.log({})
+    //this.setState({ currentBrazilState: response.data});
+    /*
     const response = (await fetch(
       `https://covid19-brazil-api.now.sh/api/report/v1/brazil/uf/${value}`
     ).then((resp) => resp.json())) as Response;
+*/
+  //  this.setState({ data: response, selectedState: value });
+      this.setState( {currentBrazilState: response})
 
-    this.setState({ data: response, selectedState: value });
   };
 
 
@@ -208,7 +236,7 @@ class Dashboard extends React.Component<Props, State> {
               content= {this.state.dataBrazil.cases}
               icon={ <Accessibility />}
               iconFooter={<DateRange />}
-              textHeader="Total de casos"         
+              textHeader="Total de casos"
               textFooter={`Atualizado em:${moment(this.state.dataBrazil.updated_at).format(dtFormat)}`}
               xs={12} sm={3} md={3} 
             />          
@@ -246,13 +274,7 @@ class Dashboard extends React.Component<Props, State> {
               xs={12} sm={2} md={3} 
             />                                    
         </GridContainer>
-        <GridContainer>
-        {this.state.dataWorld
-                    .sort((a, b) => (a.cases < b.cases ? 1 : -1))
-                    .slice(0, 6)
-                    .map((item) => {
-                    })}
-        </GridContainer>
+
 
         <TitleSection title="Situação por Estado" />
 
@@ -294,22 +316,23 @@ class Dashboard extends React.Component<Props, State> {
           <Block 
               classes={classes}
               color={"info"}
-              content= {this.state.data.cases}
+              content={this.state.currentBrazilState.cases}
+
               icon={ <Accessibility />}
               iconFooter={<DateRange />}
-              textHeader="Total de casos"         
-              textFooter={`Atualizado em:${moment(this.state.data.updated_at).format(dtFormat)}`}
+              textHeader={`Total de casos em ${this.state.currentBrazilState.state}`}
+              textFooter={`Atualizado em:`}
               xs={12} sm={6} md={6} 
             />
     
           <Block 
             classes={classes}
             color={"danger"}
-            content= {this.state.data.deaths}
+            content= {this.state.currentBrazilState.deaths}
             icon={ <Accessibility />}
             iconFooter={<DateRange />}
             textHeader="Total de mortes"         
-            textFooter={`Atualizado em:${moment(this.state.data.updated_at).format(dtFormat)}`}
+            textFooter={`Atualizado em:`}
             xs={12} sm={6} md={6} 
           />
 

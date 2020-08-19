@@ -15,7 +15,7 @@ interface Props {
     xs:number;
     sm:number;
     md:number;  
-    textHeader:string
+    textHeader:any
     textFooter:number | string
 }
   
