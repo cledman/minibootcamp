@@ -32,6 +32,7 @@ import CardBody from "../../components/Card/CardBody";
 import CardFooter from "../../components/Card/CardFooter";
 import { bugs, website, server } from "../../variables/general";
 import moment from "moment";
+import Flag from "../../components/Flag/Flag"
 
 
 import {
@@ -151,7 +152,7 @@ class Dashboard extends React.Component<Props, State> {
 
     const responsecurrentState = (await fetch(API_URL_STATE)
       .then((resp) => resp.json())) ;
-    console.log(responsecurrentState)
+    //console.log(responsecurrentState)
 
     const responseWorld = (await fetch(API_URL_WORLD)
       .then((resp) => resp.json())) as {
@@ -193,7 +194,6 @@ class Dashboard extends React.Component<Props, State> {
       dataWorld: responseWorld.data,
       dataBrazilStates: responseList.data,  
       currentBrazilState: responsecurrentState
-      //currentBrazilState: responsecurrentState.data  
     });
 
     console.log({responsecurrentState})
@@ -276,7 +276,7 @@ class Dashboard extends React.Component<Props, State> {
         </GridContainer>
 
 
-        <TitleSection title="Situação por Estado" />
+        <TitleSection title="Estados Brasileiros" />
 
         <GridContainer>
           <div style={{ padding: 20 }}>
@@ -293,12 +293,12 @@ class Dashboard extends React.Component<Props, State> {
                   }}
                 >
 
-                  <MenuItem value="#">Selecione um estado</MenuItem> 
+                  <MenuItem value="#" selected>Selecione outro estado</MenuItem> 
                 {
                   this.state.dataBrazilStates
                     .sort((a, b) => (a.uf > b.uf ? 1 : -1))
                     .map((item) =>{
-                    return  <MenuItem value={item.uf}>{item.uf}</MenuItem>
+                    return  <MenuItem value={item.uf} >{item.uf}</MenuItem>
                   })
                 }
 
@@ -315,32 +315,72 @@ class Dashboard extends React.Component<Props, State> {
 
           <Block 
               classes={classes}
-              color={"info"}
-              content={this.state.currentBrazilState.cases}
-
-              icon={ <Accessibility />}
+              color={"success"}
+              content={
+                <>
+                  <p className="Dashboard-cardCategory-195">Total de casos: <strong>{this.state.currentBrazilState.cases}</strong> </p> 
+                  <p className="Dashboard-cardCategory-195">Total de mortes: <strong>{this.state.currentBrazilState.deaths}</strong></p>
+                  <br />
+                </>
+               
+              }
+              icon={ <Flag image={this.state.currentBrazilState.uf} />}
               iconFooter={<DateRange />}
-              textHeader={`Total de casos em ${this.state.currentBrazilState.state}`}
-              textFooter={`Atualizado em:`}
-              xs={12} sm={6} md={6} 
+              textHeader={ <><h3 className="Dashboard-cardTitle-197"> {this.state.currentBrazilState.state}</h3></>  }
+              textFooter={
+                
+                <>
+                
+                  Atualizado em:{moment(this.state.dataBrazil.updated_at).format(dtFormat)}
+                  &nbsp;| Bandeiras: <a href="http://www.educadores.diaadia.pr.gov.br/modules/galeria/fotos.php?evento=11&start=0" target="_blank">Dia a Dia Educação</a>
+                </>
+              }
+              xs={6} sm={6} md={6} 
             />
-    
-          <Block 
-            classes={classes}
-            color={"danger"}
-            content= {this.state.currentBrazilState.deaths}
-            icon={ <Accessibility />}
-            iconFooter={<DateRange />}
-            textHeader="Total de mortes"         
-            textFooter={`Atualizado em:`}
-            xs={12} sm={6} md={6} 
-          />
+
+          <GridItem xs={6} sm={6} md={6}>
+            <Card chart={true}>
+              <CardHeader color="info">
+                <ChartistGraph
+                  className="ct-chart"
+                  data={{
+                    labels:
+                    this.state.dataBrazilStates
+                    .sort((a, b) => (a.cases < b.cases ? 1 : -1))
+                    .slice(0, 5)
+                    .map((item) => {
+                      return [
+                        item.uf,
+                      ];
+                    }),
+                    series:[this.state.dataBrazilStates
+                      .sort((a, b) => (a.cases < b.cases ? 1 : -1))
+                      .slice(0, 5)
+                      .map((item) =>{
+                      return item.cases
+                    })]
+                  }}
+                  type="Bar"
+                  
+                />
+              </CardHeader>
+              <CardBody>
+                <h4 className={classes.cardTitle}>5 Estados brasileiros com mais casos</h4>
+
+              </CardBody>
+              <CardFooter chart={true}>
+                <div className={classes.stats}>
+                  <AccessTime /> {`Atualizado em:${moment(this.state.dataBrazil.updated_at).format(dtFormat)}`}
+                </div>
+              </CardFooter>
+            </Card>
+          </GridItem> 
 
         </GridContainer>
 
         <TitleSection title="Situação no Brasil" />
         <GridContainer>
-        <GridItem xs={12} sm={6} md={6}>
+        <GridItem xs={12} sm={12} md={12}>
             <Card chart={true}>
               <CardHeader color="danger">
                 <ChartistGraph
@@ -383,45 +423,7 @@ class Dashboard extends React.Component<Props, State> {
               </CardFooter>
             </Card>
           </GridItem>
-          <GridItem xs={12} sm={6} md={6}>
-            <Card chart={true}>
-              <CardHeader color="info">
-                <ChartistGraph
-                  className="ct-chart"
-                  data={{
-                    labels:
-                    this.state.dataBrazilStates
-                    .sort((a, b) => (a.cases < b.cases ? 1 : -1))
-                    .slice(0, 5)
-                    .map((item) => {
-                      return [
-                        item.uf,
-                      ];
-                    }),
-                    series:[this.state.dataBrazilStates
-                      .sort((a, b) => (a.cases < b.cases ? 1 : -1))
-                      .slice(0, 5)
-                      .map((item) =>{
-                      return item.cases
-                    })]
-                  }}
-                  type="Bar"
-                  
-                />
-              </CardHeader>
-              <CardBody>
-                <h4 className={classes.cardTitle}>5 Estados brasileiros com mais casos</h4>
-                <p className={classes.cardCategory}>
-                 Top 5 states
-                </p>
-              </CardBody>
-              <CardFooter chart={true}>
-                <div className={classes.stats}>
-                  <AccessTime /> ---
-                </div>
-              </CardFooter>
-            </Card>
-          </GridItem>  
+    
         </GridContainer>
         <GridContainer>
 

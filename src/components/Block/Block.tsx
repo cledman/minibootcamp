@@ -16,7 +16,7 @@ interface Props {
     sm:number;
     md:number;  
     textHeader:any
-    textFooter:number | string
+    textFooter:any
 }
   
 interface State {
